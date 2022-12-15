@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="scripts/d3.js"></script>
+    <link href="style.css" rel="stylesheet" />
+    <title>TheSeven - Naturbrande</title>
+  </head>
+
+  <body>
+    <h1>Estimerede Naturbrande Rundt i Verdenen</h1>
+    <br /><br /><br />
+    <script>
+      // Denne query kører op imod API'en som findes i 'main.js'.
+      // Denne HTML skal derfor åbnes igennem serveren for at virke.
+      d3.json("/api/countries", {
+        method: "POST", // POST metoden bruges til at sende data til serveren
+      }).then(function (response) {
+        const data = response.data; // Hent data ud af response
+        console.log("data", data); // -------------------DEBUGGING
+
+        const indexValue = 15;
+        const w = 1000;
+        const h = 1 + indexValue * data.length;
+
+        // Lav selve SVG-elementet i DOM'en
+        const svg = d3
+          .select("body") // Vælg 'body'
+          .append("svg") // Sæt en ny 'svg' på
+          .attr("width", w) // Sæt attribut 'width' på
+          .attr("height", h); // Sæt attribut 'height' på
+
+        svg
+          .selectAll("rect")
+          .data(data)
+          .enter()
+          .append("rect")
+          .attr("x", function (d, i) {
+            return i * (w / data.length);
+          })
+          .attr("y", function (d) {
+            return h - d * 4;
+          })
+          .attr("width", w / data.length - barPadding)
+          .attr("height", function (d) {
+            return d * 4;
+          })
+          .attr("fill", "teal");
+      });
+    </script>
+  </body>
+</html>

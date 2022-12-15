@@ -1,0 +1,15 @@
+{
+  "iso2code": [
+    {
+      "dk": {
+        "firetype": ["grass", "forest", "savanah", "tropical"]
+      },
+      "de": {
+        "firetype": ["grass", "forest", "savanah", "tropical"]
+      },
+      "cz": {
+        "firetype": ["grass", "forest", "savanah", "tropical"]
+      }
+    }
+  ]
+}

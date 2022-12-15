@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bar Chart Transition med farver</title>
+    <script type="text/javascript" src="d3.js"></script>
+    <style type="text/css">
+      rect:hover {
+        fill: orange;
+      }
+
+      #tooltip {
+        position: absolute;
+        width: 100px;
+        height: auto;
+        padding: 10px;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        pointer-events: none;
+      }
+
+      #tooltip.hidden {
+        display: none;
+      }
+
+      #tooltip p {
+        margin: 0;
+        font-family: sans-serif;
+        font-size: 16px;
+        line-height: 20px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <p>Genindlæs siden for ny data</p>
+
+    <p>Tryk på søjlerne for sortering.</p>
+
+    <div id="tooltip" class="hidden">
+      <p><strong>Søjlens farve</strong></p>
+      <p><span id="value">100</span></p>
+    </div>
+
+    <script type="text/javascript">
+      const maxValue = 100;
+
+      /**
+       * En funktion der laver en tilfældig farve på formen "#000000"
+       */
+      function randomColor() {
+        // Lidt random magi :)
+        const red = ((Math.random() * 0xff) << 0).toString(16);
+        const blue = ((Math.random() * 0xff) << 0).toString(16);
+        const green = ((Math.random() * 0xff) << 0).toString(16);
+        const color = "#" + (red + green + blue).padStart(6, "0");
+        return color;
+      }
+
+      /**
+       * Laver noget tilfældig data i et array på formen [key, value, color]
+       * @param {key} unik key for dette datapunkt - fx en id eller et index
+       */
+      function randomData(key) {
+        return [key, Math.random() * maxValue, randomColor()];
+      }
+
+      const w = 600;
+      const h = 250;
+
+      let dataset = [];
+      for (let i = 0; i < 10; i++) {
+        dataset.push(randomData(i));
+      }
+      console.log(dataset);
+      console.log(JSON.stringify(dataset));
+
+      const xScale = d3
+        .scaleBand()
+        .domain(d3.range(dataset.length))
+        .range([0, w])
+        .paddingInner(0.05);
+
+      const yScale = d3.scaleLinear().domain([0, maxValue]).range([0, h]);
+
+      const svg = d3
+        .select("body")
+        .append("svg")
+        .attr("width", w)
+        .attr("height", h);
+
+      // Bar chart laves herunder
+      svg
+        .selectAll("rect")
+        .data(dataset, function (d) {
+          // Denne funktion udpeger 'key' i hvert punkt, som er første element i arrayet.
+          return d[0];
+        })
+        .enter()
+        .append("rect")
+        .attr("x", function (d, i) {
+          return xScale(i);
+        })
+        .attr("y", function (d) {
+          return h - yScale(d[1]);
+        })
+        // Skaleringsfunktionen tager sig af bredden på søjlerne - inklusiv padding
+        .attr("width", xScale.bandwidth())
+        .attr("height", function (d) {
+          return yScale(d[1]);
+        })
+        .attr("fill", function (d) {
+          // Farven er det tredje elemenet i arrayet - bruges til SVG fill
+          return d[2];
+        })
+        // Koden herunder køres ved tryk på en af søjlerne
+        .on("click", function () {
+          dataset.sort(function (a, b) {
+            return a[1] - b[1];
+          });
+          const xScaleNy = d3
+            .scaleBand()
+            .domain(
+              dataset.map(function (d) {
+                return d[1];
+              })
+            )
+            .rangeRound([0, w])
+            .paddingInner(0.05);
+
+          const updateSelection = svg
+            .selectAll("rect")
+            .data(dataset, function (d) {
+              return d[0];
+            });
+          updateSelection
+            .transition()
+            .duration(2000)
+
+            .attr("x", function (d) {
+              return xScaleNy(d[1]);
+            });
+        })
+        .on("mouseover", function (event, d) {
+          // Læs søjlens x og y position ud fra 'this'
+          // Husk parseFloat for at lave text til number.
+          const xPosition = parseFloat(d3.select(this).attr("x"));
+          const yPosition = parseFloat(d3.select(this).attr("y")) + 10;
+
+          // Flyt tooltip div til rigtig position
+          d3.select("#tooltip")
+            .style("left", xPosition + "px")
+            .style("top", yPosition + "px")
+            .select("#value")
+            .text(d[2]);
+
+          // Vis tooltip på ny position
+          d3.select("#tooltip").classed("hidden", false);
+        })
+        .on("mouseout", function () {
+          // Gem tooltip til næste gang
+          d3.select("#tooltip").classed("hidden", true);
+        });
+    </script>
+  </body>
+</html>

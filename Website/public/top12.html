@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://d3js.org/d3-selection.v1.min.js"></script>
+    <script src="scripts/d3.js"></script>
+    <link href="style.css" rel="stylesheet" />
+    <title>TheSeven - Naturbrande</title>
+  </head>
+
+  <body>
+    <h1>Estimerede Naturbrande Rundt i Verdenen</h1>
+    <br /><br /><br />
+    <div id="toop"></div>
+    <div id="top12chartcontainer"><div id="top12chart"></div></div>
+    <script type="text/javascript">
+      // Width og height
+
+      let startWidth = d3
+          .select("#top12chart")
+          .select(function () {
+            return this.parentNode;
+          })
+          .node()
+          .getBoundingClientRect().width,
+        startHeight = d3
+          .select("#top12chart")
+          .select(function () {
+            return this.parentNode;
+          })
+          .node()
+          .getBoundingClientRect().height;
+      const w = startWidth;
+      const h = startHeight;
+      const barPadding = 120; // Bruges til at lave afstand imellem søjler
+      d3.json("/api/countries", {
+        method: "POST", // POST metoden bruges til at sende data til serveren
+      }).then(function (response) {
+        const data = response.data; // Hent data ud af response
+        console.log("data", data); // -------------------DEBUGGING
+
+        let gemtdata = data.slice(0, 12);
+
+        // scale her
+        const xScale = d3
+          .scaleLinear()
+          .domain([0, gemtdata.length])
+          .range([100, w - 50]);
+
+        const yScale = d3
+          .scaleLinear()
+          .domain([
+            0,
+            d3.max(gemtdata, function (d) {
+              return d.fire;
+            }),
+          ])
+          .range([20, h - 40]);
+
+        const svg = d3
+          .select("#top12chart")
+          .append("svg")
+          .attr("width", w)
+          .attr("height", h + 900);
+
+        let toop = d3
+          .select("#toop")
+          .style("visibility", "hidden")
+          .style("background-color", "white")
+          .style("border", "solid")
+          .style("border-width", "2px")
+          .style("border-radius", "5px")
+          .style("padding", "5px");
+
+        // Lave barchart (søjlediagram)
+        svg
+          .selectAll("rect")
+          .data(gemtdata)
+          .enter()
+          .append("rect")
+          // 'd' er datapunktet
+          // 'i' er index i datasættet
+          .attr("x", function (d, i) {
+            // Søjlerne spredes jævnt ud over 'w'
+            return xScale(i);
+          })
+          .attr("y", function (d) {
+            // 'y' er position for søjlens øverste kant
+            // Husk, y-aksen vender på hovedet!
+            return h - yScale(d.fire) - 20;
+          })
+          // Bredden er fast - og afhænger af 'w' og antallet af datapunkter
+          .attr("width", (w / gemtdata.length) * 2.1 - barPadding) // Padding skaber luft imellem søjler
+          // Højden er datapunktet * 4.
+          .attr("height", function (d) {
+            return yScale(d.fire) - 20;
+          })
+          // Alle søjler er farvet 'teal'
+          .attr("fill", "teal")
+
+          // tester mousetool af her
+
+          .on("mouseover", function (e, d) {
+            toop.style("visibility", "visible");
+            d3.select(this).style("stroke", "black").style("opacity", 1);
+            var xPosition =
+              parseFloat(d3.select(this).attr("x")) + xScale(1) / 2;
+            var yPosition = parseFloat(d3.select(this).attr("y")) / 2 + h / 2;
+
+            // console.log(d3.format(",")(d.fire));
+            // d3.select("#toop").classed("hidden", false);
+
+            d3.select(this)
+              .attr("fill", "orange")
+              .on("mouseout", function (d) {
+                d3.select(this).attr("fill", "teal");
+              });
+          })
+          .on("mousemove", function (e, d) {
+            d3.select("#toop")
+              .html(
+                "Country: " +
+                  d.countryname +
+                  "<br>Year: " +
+                  d.year +
+                  "<br>Burnt Area: " + //Herunder er der sat punktum i hver tusind nummeringer
+                  d3.format(",")(d.fire.toFixed(0)).replaceAll(",", ".")
+              )
+              .style("left", window.event.clientX + 70 + "px")
+              .style("top", window.event.clientY + "px");
+            // console.log(e.clientX + " " + e.clientY);
+          })
+          .on("mouseleave", function () {
+            // console.log("mouseout");
+            toop.style("visibility", "hidden");
+            d3.select(this).style("stroke", "none").style("opacity", 0.8);
+          });
+
+        svg
+          .selectAll("text")
+          .data(gemtdata)
+          .enter()
+          .append("text")
+          .classed("cNames", true)
+          .attr("x", function (d, i) {
+            return (
+              xScale(i) +
+              ((w / gemtdata.length) * 1.5 - barPadding) / 2 +
+              barPadding / 4
+            );
+          })
+          .attr("y", function (d) {
+            return h - yScale(20);
+          })
+          .text(function (d) {
+            return d.iso2code;
+            // her
+          })
+          .attr("text-anchor", "middle");
+
+        // d3.selectAll(".cNames")
+        //   .data(gemtdata)
+        //   .attr("transform", "translate(0," + h + ")")
+        //   .attr("dy", ".35em")
+        //   .attr("transform", "rotate(10)")
+        //   .style("text-anchor", "start")
+        //   .attr("x", function (d, i) {
+        //     return xScale(i) + ((w / gemtdata.length) * 1.5 - barPadding) / 2;
+        //   })
+
+        //   .attr("y", function (d) {
+        //     return h - yScale(20);
+        //   });
+
+        var y = d3
+          .scaleLinear()
+          .domain([
+            0,
+            d3.max(gemtdata, function (d) {
+              return +Number(d.fire);
+            }),
+          ])
+          .range([h - 40, 20]);
+        svg
+          .append("g")
+          .attr("id", "yAxis")
+          .call(d3.axisLeft(y))
+          .attr("transform", "translate(60, 0)");
+
+        // $("#container").ejChart({
+        //   primaryXAxis: {
+        //     title: { text: "Countryname" },
+        //     //Rotating labels by 45 degrees
+        //     labelRotation: 45,
+        //   },
+        // });
+
+        // .style("text", oblique);
+        // svg
+        //   .selectAll("g")
+        //   .data(gemtdata)
+        //   .enter()
+        //   .append("g")
+        //   .append("text")
+        //   .text(function (d) {
+        //     return Math.round(d.fire);
+        //   })
+        //   .attr("x", function (d, i) {
+        //     return xScale(i) + ((w / gemtdata.length) * 2.1 - barPadding) / 2;
+        //   })
+        //   .attr("y", function (d) {
+        //     return h - yScale(d.fire) - yScale(40000);
+        //   })
+        //   .attr("text-anchor", "middle")
+        //   .style("font-size", "10px");
+
+        // svg
+        //   .append("text")
+        //   .attr("class", "y label")
+        //   .attr("text-anchor", "end")
+        //   .attr("y", 70)
+        //   .attr("x", -h + 275)
+        //   .attr("dy", ".75em")
+        //   .attr("opacity", "1")
+        //   .attr("fill", "red")
+        //   .attr("transform", "rotate(-90)")
+        //   .text("Burnt Area in km 2");
+
+        // svg
+        //   .append("g")
+        //   .attr("class", "x axis")
+        //   .attr("transform", "translate(0," + h + ")")
+        //   .call(xAxis)
+        //   .selectAll("text")
+        //   .style("text-anchor", "end")
+        //   .attr("dx", "-.8em")
+        //   .attr("dy", ".15em")
+        //   .attr("transform", "rotate(-65)");
+      });
+      // Selve datasættet
+    </script>
+  </body>
+</html>

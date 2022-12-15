@@ -1,0 +1,541 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=EB+Garamond");
+@import url("https://fonts.googleapis.com/css2?family=Oswald");
+* {
+  margin: 0;
+  padding: 0;
+  font-family: "SF Pro Text", "Myriad Set Pro", "SF Pro Icons", "Helvetica Neue",
+    "Helvetica", "Arial", sans-serif;
+}
+/* Variabler */
+:root {
+  --softred: #f75354;
+  --middlered: #c44343;
+  --darkerred: #782929;
+  --darkerwhite: #c0c0c0;
+  --middlewhite: #d0d0d0;
+  --white: #f0f0f0;
+  --backgroundblack: #00000095;
+}
+/* Main body & html */
+html,
+body {
+  width: 100%;
+  display: block;
+  margin: auto;
+  height: 100%;
+  overflow: hidden;
+  overflow: -moz-hidden-unscrollable;
+}
+/* Main body */
+body {
+  margin-top: 30px;
+  background-color: #333333;
+  height: 100%;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+  text-align: center;
+}
+/* Main text */
+h1,
+svg text {
+  fill: var(--middlewhite);
+  color: var(--middlewhite);
+  display: inline-block;
+}
+/* Worldmap */
+#worldmap {
+  display: inline-block;
+  position: absolute;
+  margin-top: 30px;
+  text-align: center;
+}
+
+#worldmapDiv {
+  display: inline-block;
+  text-align: center;
+}
+/* Chrome disclaimer */
+#disclaimerDiv {
+  position: absolute;
+  bottom: 10px;
+  align-items: center;
+  width: 100%;
+  pointer-events: none;
+}
+#chromeDisclaimer {
+  text-align: center;
+  vertical-align: bottom;
+}
+/* Intro titel */
+#introTitleDiv {
+  display: block;
+  margin: auto;
+  height: 13%;
+  padding-left: 20%;
+  padding-right: 20%;
+  line-height: 1.3;
+}
+#introTitleDiv p {
+  font-family: "EB Garamond";
+  font-size: 20px;
+  color: var(--white);
+}
+#introTitle {
+  font-family: "Roboto serif", serif;
+  font-size: 30px;
+  color: #ffffff;
+}
+/* Introbox (Startbox) */
+#startBox {
+  position: absolute;
+  top: 0%;
+  left: 0%;
+  right: 0%;
+  bottom: 0%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 30;
+  text-align: center;
+  color: var(--darkerwhite);
+  font-size: 18px;
+}
+#startBox #exploreSite {
+  color: var(--darkerwhite);
+  width: fit-content;
+  text-align: center;
+  margin: auto;
+  margin-top: 50px;
+  border: 2px solid var(--softred);
+  background-color: var(--softred);
+  padding: 5px;
+  cursor: pointer;
+  -webkit-box-shadow: 0 0 10px black;
+  box-shadow: 0 0 10px black;
+  z-index: 100;
+}
+#startBox #introTitleDiv {
+  padding-bottom: 20px;
+}
+#introTitleDiv p {
+  font-size: 25px;
+}
+#introTextEnd {
+  font-family: "EB Garamond";
+  font-weight: bold;
+  color: var(--softred);
+}
+#startBox #exploreSite:hover {
+  color: var(--white);
+  border-bottom-color: var(--white);
+}
+/* Intro chart */
+#introChartArea {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+  height: 50%;
+  margin-top: 15px;
+  overflow: hidden;
+}
+/* Worldmap tooltip */
+.tooltip {
+  background-color: #00000099;
+  color: var(--darkerwhite);
+  font-weight: bold;
+  border-radius: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+/* Land-data vindue */
+.dataWindow {
+  position: absolute;
+  z-index: 10;
+  left: 50%;
+  padding: 5px;
+  transform: translate(-50%, 0);
+  background-color: #1c1c1cd9;
+  border-radius: 6px;
+  width: 90%;
+  height: 75vh;
+  color: var(--middlewhite);
+  text-align: center;
+}
+.dataWindow h5 {
+  position: absolute;
+  top: 2%;
+  width: 40%;
+}
+/* Luk knap css */
+.close {
+  position: absolute;
+  text-align: center;
+  right: 0;
+  top: 0;
+  padding: 3px;
+  margin: 4px;
+  cursor: pointer;
+  color: black;
+  font-weight: bold;
+  border: 2px solid black;
+  border-radius: 6px;
+  border-bottom-left-radius: 6px;
+  background-color: var(--darkerwhite);
+  width: 15px;
+  height: 15px;
+  line-height: 15px;
+  opacity: 1;
+}
+
+.close:hover {
+  background-color: #ff9797;
+}
+
+#submitUserInput {
+  margin-left: 10px;
+  padding: 4px;
+  border-radius: 6px;
+  background-color: var(--softred);
+  color: white;
+  border-color: #1c1c1cd9;
+}
+
+/* Dataselector (Øverst venstre) */
+#selectorContainer {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+  z-index: 10;
+}
+#selectorContainer #Continents,
+#individualCountry {
+  padding: 3px;
+}
+#Continents #individualCountry {
+  -webkit-box-shadow: 0 0 10px black;
+  box-shadow: 0 0 10px black;
+}
+#selectorContainer p {
+  font-family: "Roboto";
+  display: flex;
+  height: 30px;
+  width: 100px;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 2px solid var(--darkerred);
+  opacity: 0.7;
+}
+#selectorContainer h4 {
+  border-bottom: 2px solid black;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: normal;
+}
+
+#selectorContainer p:hover {
+  border-bottom: 2px solid white;
+  color: white;
+  opacity: 1;
+}
+
+#Continents {
+  background-color: var(--softred);
+}
+
+#dataChoice {
+  margin-right: 5px;
+  background-color: var(--darkerred);
+}
+
+.choiceHeader {
+  background-color: var(--darkerred);
+  font-size: 12px;
+}
+
+#visauliseringsForm {
+  margin-left: 5px;
+  background-color: var(--darkerred);
+}
+#visauliseringsForm #visualisedCircles,
+#visualisedData {
+  padding: 3px;
+}
+/* Søgefelt */
+#searchDiv {
+  position: absolute;
+  top: 20px;
+  right: 15px;
+}
+#searchBar {
+  padding: 5px;
+  background-color: var(--softred);
+  /* border-radius: 8px; */
+  border: none;
+  box-direction: none;
+  color: white;
+}
+#searchBar::placeholder {
+  color: var(--darkerwhite);
+}
+#searchBar:focus {
+  outline: none;
+  color: white;
+}
+#searchBar:disabled {
+  background-color: var(--darkerred);
+  cursor: not-allowed;
+  color: #1c1c1cd9;
+}
+#searchBar:disabled::placeholder {
+  color: #1c1c1cd9;
+}
+#searchBarDiv {
+  background-color: var(--middlered);
+  padding: 2px;
+}
+
+#errorMessage {
+  padding-top: 15px;
+  visibility: hidden;
+  color: var(--softred);
+}
+/* Om knap */
+#aboutDiv {
+  background-color: #21212195;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  height: 20px;
+  width: 80px;
+  display: table-cell;
+  vertical-align: middle;
+  z-index: 20;
+  border-top-right-radius: 5px;
+  margin-top: 20px;
+}
+#aboutDiv p {
+  text-align: center;
+  color: var(--darkerwhite);
+}
+#aboutDiv a {
+  color: var(--softred);
+}
+#aboutDiv a:visited {
+  color: var(--darkerred);
+}
+#aboutText {
+  /* Center text in div */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+#makersText {
+  visibility: hidden;
+  position: absolute;
+  bottom: 10px;
+}
+#sourceText {
+  padding-top: 20px;
+  visibility: hidden;
+}
+/* Tutorial DIV */
+#tutorialDiv {
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  height: 50%;
+  width: 20%;
+  background-color: #21212195;
+  padding: 20px;
+  z-index: 60;
+  color: var(--darkerwhite);
+  display: inline-block;
+  text-align: left;
+  border-top-left-radius: 4px;
+  visibility: hidden;
+}
+#tutorialUserViewChoiceDiv {
+  height: 20%;
+  display: block;
+  width: 100%;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid black;
+  border-top: 2px solid black;
+}
+#tutorialUserViewChoiceImg {
+  height: 100%;
+  float: left;
+}
+#tutorialUserViewChoiceText {
+  padding-top: 5%;
+  font-size: 12px;
+  text-align: center;
+}
+#tutorialViewChoiceDiv {
+  height: 20%;
+  display: block;
+  width: 100%;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+#tutorialViewChoiceImg {
+  height: 100%;
+  float: left;
+  padding-bottom: 15%;
+}
+#tutorialViewChoiceText {
+  padding-top: 5%;
+  font-size: 12px;
+  text-align: center;
+}
+#tutorialViewChoiceGif {
+  height: 100%;
+  float: center;
+  margin-top: 4%;
+}
+/* Cirkler css */
+.CC {
+  z-index: 90;
+  position: absolute;
+  cursor: move;
+}
+/* Intro chart */
+#yAxis text {
+  fill: #df2c14;
+  font-weight: bold;
+}
+#y1Axis text {
+  fill: #a0a1a4;
+  font-weight: bold;
+}
+#chartcontainerparent {
+  width: 1000px;
+  height: 560px;
+}
+#chartcontainer {
+  grid-row-start: 1;
+  grid-column-start: 1;
+}
+
+#colorExplainer {
+  height: 20px;
+  width: 150px;
+  font-size: 13px;
+}
+#califiresExplainerBox1box,
+#califiresExplainerBox2box {
+  height: 20px;
+  width: 20px;
+  cursor: help;
+}
+#califiresExplainerBox1text,
+#califiresExplainerBox2text {
+  width: 50px;
+  cursor: help;
+  font-weight: bold;
+}
+#path1,
+#path2 {
+  cursor: help;
+}
+
+/* Welat Tooltip */
+#toop {
+  position: absolute;
+  background-color: var(--darkerwhite);
+  padding: 7px;
+  z-index: 90;
+  visibility: hidden;
+  opacity: 0.8;
+}
+
+#top12chartcontainer {
+  width: 1000px;
+  height: 500px;
+}
+/* Charts click country */
+#dataWindowGraf1,
+#dataWindowGraf2 {
+  display: inline-block;
+  width: 45%;
+  height: 75%;
+}
+#dataWindowGraf2 {
+  margin-left: 8%;
+}
+#dataWindowGraf1Text,
+#dataWindowGraf2Text {
+  display: inline-block;
+  width: 45%;
+}
+#dataWindowGraf1Text {
+  margin-left: 4%;
+  text-align: left;
+}
+#dataWindowGraf2Text {
+  margin-left: 4%;
+  text-align: right;
+}
+#colorExplainerGrafTemp {
+  height: 20px;
+  width: 150px;
+  font-size: 13px;
+}
+#califiresExplainerBox1boxGrafTemp,
+#califiresExplainerBox2boxGrafTemp {
+  height: 20px;
+  width: 20px;
+  cursor: help;
+}
+#califiresExplainerBox1textGrafTemp,
+#califiresExplainerBox2textGrafTemp {
+  width: 50px;
+  cursor: help;
+  font-weight: bold;
+}
+#path1GrafTemp,
+#path2GrafTemp {
+  cursor: help;
+}
+#yAxisGrafTemp text {
+  fill: #df2c14;
+  font-weight: bold;
+}
+#y1AxisGrafTemp text {
+  fill: #a0a1a4;
+  font-weight: bold;
+}
+#yAxisFireType {
+  font-size: 14px;
+}
+#xAxisTypeGraf {
+  font-size: 8px;
+}
+.cNames {
+  font-size: 12px;
+  /* transform: rotate(1deg); */
+}
+#dataWindowGraf2TextQuestion {
+  cursor: help;
+  border: 2px solid black;
+  background-color: var(--darkerwhite);
+  opacity: 0.9;
+  border-radius: 100%;
+  color: black;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+#aboutWelat {
+  margin-top: 5px;
+  height: 40%;
+}

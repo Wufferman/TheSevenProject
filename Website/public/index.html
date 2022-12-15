@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/res/favicon/apple-touch-icon.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/res/favicon/favicon-32x32.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/res/favicon/favicon-16x16.png" />
+    <link rel="manifest" href="/res/favicon/site.webmanifest" />
+    <link
+      rel="mask-icon"
+      href="/res/favicon/safari-pinned-tab.svg"
+      color="#5bbad5" />
+    <meta name="msapplication-TileColor" content="#00aba9" />
+    <meta name="theme-color" content="#ffffff" />
+
+    <script src="https://d3js.org/d3-selection.v1.min.js"></script>
+    <script src="scripts/d3.js"></script>
+    <script src="scripts/functions.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <link href="normalize.css?ver=100" rel="stylesheet" />
+    <link href="style.css?ver=100" rel="stylesheet" />
+    <title>Naturbrande Visualisering</title>
+  </head>
+
+  <body>
+    <div id="startBox">
+      <div id="introTitleDiv">
+        <h1 id="introTitle">Naturbrande - Den uoplyste klimaforandring</h1>
+        <p>
+          Konsekvenserne efter og årsagerne til naturbrande er sjældent
+          visualiseret. Dette skal iscenesættes, da det har en relation til
+          verdens stigende temperatur.
+          <span id="introTextEnd">Men hvor i verden er det værst?</span>
+        </p>
+      </div>
+
+      <div id="introChartArea"></div>
+      <p id="exploreSite">Gå på opdagelse</p>
+      <div id="imageDiv"></div>
+      <div id="disclaimerDiv">
+        <p id="chromeDisclaimer">Tested supported browser: Chrome</p>
+      </div>
+    </div>
+
+    <div id="aboutDiv" active="false">
+      <p id="aboutText">Om</p>
+      <p id="sourceText">
+        Data:
+        <a href="https://www.fao.org/faostat/en/#data/GI" target="_blank"
+          >https://www.fao.org/faostat/en/#data/GI</a
+        >
+        ,
+        <a href="https://www.fao.org/faostat/en/#data/ET" target="_blank"
+          >https://www.fao.org/faostat/en/#data/ET</a
+        >
+        &
+        <a
+          href="https://www.nifc.gov/fire-information/statistics/wildfires"
+          target="_blank"
+          >https://www.nifc.gov/fire-information/statistics/wildfires</a
+        >
+      </p>
+      <img src="./res/Welat.gif" id="aboutWelat" />
+      <p id="makersText">
+        Hjemmeside visualiseret af TheSeven (Jeff, August, Nicolaj & Welat)
+      </p>
+    </div>
+    <div id="tutorialDiv">
+      <p id="tutorialDivText">Sådan anvender du hjemmesiden</p>
+      <div id="tutorialUserViewChoiceDiv">
+        <img src="./res/userViewChoice.png" id="tutorialUserViewChoiceImg" />
+        <p id="tutorialUserViewChoiceText">
+          Her skældnes data mellem lande og kontinenter<br />Søgefeltet kan kun
+          anvendes hvis både lande samt data er valgt
+        </p>
+      </div>
+      <div id="tutorialViewChoiceDiv">
+        <img src="./res/viewChoice.png" id="tutorialViewChoiceImg" />
+        <p id="tutorialViewChoiceText">
+          Knapper for at skifte visualiseringsform <br />
+          "Kort" laver hjemmesiden til en Drag & Drop visualisering af største
+          brande for lande/kontinenter<br />
+          "Grafer" viser visualiseringer for valgt land/kontinent
+        </p>
+        <img src="./res/circleTutorial.gif" id="tutorialViewChoiceGif" />
+      </div>
+    </div>
+    <div id="selectorContainer">
+      <div id="dataChoice">
+        <h4 class="choiceHeader">DATAVALG</h4>
+        <p id="Continents">Kontinenter</p>
+        <p id="individualCountry">Lande</p>
+      </div>
+      <div id="visauliseringsForm">
+        <h4 class="choiceHeader">VISUALISERING</h4>
+        <p id="visualisedCircles">Kort</p>
+        <p id="visualisedData">Grafer</p>
+      </div>
+    </div>
+    <div id="searchDiv">
+      <div id="searchBarDiv">
+        <input
+          id="searchBar"
+          type="text"
+          disabled="disabled"
+          placeholder="Søg efter land" />
+      </div>
+      <p id="errorMessage">Ikke et land</p>
+    </div>
+    <br /><br /><br />
+    <div id="worldmapDiv"></div>
+    <div class="dataWindow">
+      <div id="dataWindowText"></div>
+      <div id="dataWindowGraf1Text">
+        <h5>
+          Temperaturstigninger mod naturbrande i km²<br /><br />De generelle
+          temperaturstigninger i verden har i flere lande en god korrelation med
+          stigende naturbrande - Dette er typisk værst i områder hvor det er
+          sværere for befolkningen at slukke brandene.
+        </h5>
+      </div>
+      <div id="dataWindowGraf2Text">
+        <h5>
+          Typer af naturbrande og deres antal (km²)<br /><br />I mange tilfælde
+          er flade naturområder samt marker de mest påvirkede arealer, på trods
+          af at skovbrande typisk er det mest medieomtalte område
+          <span id="dataWindowGraf2TextQuestion">?</span>
+        </h5>
+      </div>
+      <div id="dataWindowGraf1"></div>
+      <div id="dataWindowGraf2"></div>
+    </div>
+    <div id="toop"></div>
+    <script>
+      // Laver div'en til tooltippet
+
+      function difference(a, b) {
+        return Math.abs(a - b);
+      }
+
+      let mouseDown = 0;
+      document.body.onmousedown = function () {
+        ++mouseDown;
+      };
+      document.body.onmouseup = function () {
+        --mouseDown;
+      };
+
+      // Variabler til sammenligning i km2
+      const soccerfieldSize = 0.00714;
+      const aarhusSize = 91;
+      const danmarkSize = 42951;
+
+      // Alle andre variabler
+      var isDown = false;
+      var touchedCountry = "DKCircle";
+      let allCountryNames = [];
+      let allCountryiso2code = [];
+      let allCountryData = [];
+      var userChoiceView = "Continent";
+      var viewChoice = "";
+      let colorSoftRed = "#f75354";
+      let colorDarkerRed = "#782929";
+      let colorDarkerWhite = "#c0c0c0";
+      let colorMiddleWhite = "#d0d0d0";
+      let colorWhite = "#f0f0f0";
+      let colorCircle = "#C4434399";
+
+      d3.selectAll("#selectorContainer").style("visibility", "hidden");
+      d3.selectAll("#searchDiv").style("visibility", "hidden");
+      d3.selectAll("#aboutDiv").style("visibility", "hidden");
+
+      let tooltip = d3
+        .select("body")
+        .append("div")
+        .classed("tooltip", true)
+        .style("position", "absolute")
+        .style("z-index", "10")
+        .style("visibility", "hidden"); // INITIALISERER TOOLTIPPET
+
+      let dataWindow = d3.select(".dataWindow").style("visibility", "hidden"); // INITIALISERER DATAWINDOW
+
+      let searchDiv = d3.select("#searchDiv"); // INITIALISERER SEARCHDIV
+
+      let individualCountry = d3
+        .select("#individualCountry")
+        .style("cursor", "pointer")
+        .style("color", colorDarkerWhite)
+        .style("background-color", colorDarkerRed)
+        .on("click", function () {
+          userChoiceView = "Individual";
+          individualCountry
+            .style("border-bottom", "2px solid white")
+            .style("color", "white")
+            .style("background-color", colorSoftRed)
+            .style("opacity", "1"); // Skifter signifier
+          Continents.style("border-bottom", "2px solid " + colorDarkerRed)
+            .style("color", colorDarkerWhite)
+            .style("background-color", colorDarkerRed)
+            .style("opacity", "0.7"); // Skifter signifier
+          if (viewChoice == "") d3.select("#searchBar").attr("disabled", null); // Gør søgefeltet klikbart og brugbart
+        })
+        .on("mouseover", function () {
+          individualCountry
+            .style("border-bottom", "2px solid white")
+            .style("color", "white")
+            .style("background-color", colorSoftRed)
+            .style("opacity", "1"); // Hover effekt
+        })
+        .on("mouseout", function () {
+          if (userChoiceView == "Individual") {
+            return;
+          } else {
+            individualCountry
+              .style("border-bottom", "2px solid " + colorDarkerRed)
+              .style("color", colorDarkerWhite)
+              .style("background-color", colorDarkerRed)
+              .style("opacity", "0.7"); // Hover effekt slut
+          }
+        }); // INITIALISERER INDIVIDUALCOUNTRY
+
+      let Continents = d3
+        .select("#Continents")
+        .style("cursor", "pointer")
+        .style("border-bottom", "2px solid white")
+        .style("color", "white")
+        .style("opacity", "1")
+        .on("click", function () {
+          userChoiceView = "Continent";
+          Continents.style("border-bottom", "2px solid white")
+            .style("color", "white")
+            .style("background-color", colorSoftRed)
+            .style("opacity", "1"); // Skifter signifier
+          individualCountry
+            .style("border-bottom", "2px solid " + colorDarkerRed)
+            .style("color", colorDarkerWhite)
+            .style("background-color", colorDarkerRed)
+            .style("opacity", "0.7"); // Skifter signifier
+          d3.select("#searchBar").attr("disabled", "disabled"); // DISABLE SEARCHBAR
+        })
+        .on("mouseover", function () {
+          Continents.style("border-bottom", "2px solid white")
+            .style("color", "white")
+            .style("background-color", colorSoftRed)
+            .style("opacity", "1"); // Hover effekt
+        })
+        .on("mouseout", function () {
+          if (userChoiceView == "Continent") {
+            return;
+          } else {
+            Continents.style("border-bottom", "2px solid " + colorDarkerRed)
+              .style("color", colorDarkerWhite)
+              .style("background-color", colorDarkerRed)
+              .style("opacity", "0.7"); // Hover effekt slut
+          }
+        }); // INITIALISERER CONTINENTS
+
+      let visualisedCircles = d3
+        .select("#visualisedCircles")
+        .style("cursor", "pointer")
+        .style("color", colorDarkerWhite)
+        .on("click", function () {
+          viewChoice = "CC";
+          visualisedCircles
+            .style("border-bottom", "2px solid white")
+            .style("color", "white")
+            .style("background-color", colorSoftRed)
+            .style("opacity", "1"); // Skifter signifier
+          visualisedData
+            .style("border-bottom", "2px solid " + colorDarkerRed)
+            .style("color", colorDarkerWhite)
+            .style("background-color", colorDarkerRed)
+            .style("opacity", "0.7"); // Skifter signifier
+          d3.select("#searchBar").attr("disabled", "disabled"); // DISABLE SEARCHBAR
+        })
+        .on("mouseover", function () {
+          visualisedCircles
+            .style("border-bottom", "2px solid white")
+            .style("color", "white")
+            .style("background-color", colorSoftRed)
+            .style("opacity", "1"); // Hover effekt
+        })
+        .on("mouseout", function () {
+          if (viewChoice == "CC") {
+            return;
+          } else {
+            visualisedCircles
+              .style("border-bottom", "2px solid " + colorDarkerRed)
+              .style("color", colorDarkerWhite)
+              .style("background-color", colorDarkerRed)
+              .style("opacity", "0.7"); // Hover effekt slut
+          }
+        }); // INITIALISERER INDIVIDUALCOUNTRY
+
+      let visualisedData = d3
+        .select("#visualisedData")
+        .style("cursor", "pointer")
+        .style("border-bottom", "2px solid white")
+        .style("color", "white")
+        .style("opacity", "1")
+        .on("click", function () {
+          viewChoice = "";
+          visualisedData
+            .style("border-bottom", "2px solid white")
+            .style("color", "white")
+            .style("background-color", colorSoftRed)
+            .style("opacity", "1"); // Skifter signifier
+          visualisedCircles
+            .style("border-bottom", "2px solid " + colorDarkerRed)
+            .style("color", colorDarkerWhite)
+            .style("background-color", colorDarkerRed)
+            .style("opacity", "0.7"); // Skifter signifier
+          d3.selectAll(".CC").remove();
+          if (userChoiceView == "Individual")
+            d3.select("#searchBar").attr("disabled", null); // DISABLE SEARCHBAR
+        })
+        .on("mouseover", function () {
+          visualisedData
+            .style("border-bottom", "2px solid white")
+            .style("color", "white")
+            .style("background-color", colorSoftRed)
+            .style("opacity", "1"); // Hover effekt
+        })
+        .on("mouseout", function () {
+          if (viewChoice == "") {
+            return;
+          } else {
+            visualisedData
+              .style("border-bottom", "2px solid " + colorDarkerRed)
+              .style("color", colorDarkerWhite)
+              .style("background-color", colorDarkerRed)
+              .style("opacity", "0.7"); // Hover effekt slut
+          }
+        }); // INITIALISERER CONTINENTS
+
+      if (viewChoice == "CC") {
+        visualisedCircles
+          .style("border-bottom", "2px solid white")
+          .style("color", "white")
+          .style("background-color", colorSoftRed)
+          .style("opacity", "1"); // Skifter signifier
+        visualisedData
+          .style("border-bottom", "2px solid " + colorDarkerRed)
+          .style("color", colorDarkerWhite)
+          .style("background-color", colorDarkerRed)
+          .style("opacity", "0.7"); // Skifter signifier
+      } else {
+        visualisedData
+          .style("border-bottom", "2px solid white")
+          .style("color", "white")
+          .style("background-color", colorSoftRed)
+          .style("opacity", "1"); // Skifter signifier
+        visualisedCircles
+          .style("border-bottom", "2px solid " + colorDarkerRed)
+          .style("color", colorDarkerWhite)
+          .style("background-color", colorDarkerRed)
+          .style("opacity", "0.7"); // Skifter signifier
+      }
+
+      let startBox = d3.select("#startBox"); // INITIALISERER STARTBOX
+
+      let tutorialBox = d3
+        .select("#tutorialDiv")
+        .style("cursor", "pointer")
+        .on("click", function (e) {
+          if (
+            e.path[0].getAttribute("id") != "tutorialUserViewChoiceImg" &&
+            e.path[0].getAttribute("id") != "tutorialViewChoiceImg"
+          ) {
+            // console.log(e.path[0].getAttribute("id"));
+            if (tutorialBox.attr("active") == "false") {
+              tutorialBox
+                .style("height", "50%")
+                .style("width", "20%")
+                .attr("active", "true")
+                .style("padding", "20px");
+              tutorialBox
+                .select("#tutorialUserViewChoiceDiv")
+                .style("visibility", "visible");
+              tutorialBox
+                .select("#tutorialViewChoiceDiv")
+                .style("visibility", "visible");
+              tutorialBox.select(".close").style("visibility", "visible");
+            } else {
+              tutorialBox
+                .style("height", "40px")
+                .style("width", "120px")
+                .attr("active", "false")
+                .style("padding", "5px");
+              tutorialBox
+                .select("#tutorialUserViewChoiceDiv")
+                .style("visibility", "hidden");
+              tutorialBox
+                .select("#tutorialViewChoiceDiv")
+                .style("visibility", "hidden");
+              tutorialBox.select(".close").style("visibility", "hidden");
+            }
+          } else {
+            callErrorSound();
+          }
+        }); // About box initialiseres
+      tutorialBox.append("p").text("x").attr("class", "close");
+      tutorialBox
+        .style("height", "40px")
+        .style("width", "120px")
+        .attr("active", "false")
+        .style("padding", "5px");
+      tutorialBox
+        .select("#tutorialUserViewChoiceDiv")
+        .style("visibility", "hidden");
+      tutorialBox
+        .select("#tutorialViewChoiceDiv")
+        .style("visibility", "hidden");
+      tutorialBox.select(".close").style("visibility", "hidden");
+
+      let userViewChoiceImg = d3
+        .select("#tutorialUserViewChoiceImg")
+        .on("mouseover", function () {
+          d3.select("#tutorialUserViewChoiceImg").attr(
+            "src",
+            "./res/userViewChoice.gif"
+          );
+        })
+        .on("mouseout", function () {
+          d3.select("#tutorialUserViewChoiceImg").attr(
+            "src",
+            "./res/userViewChoice.png"
+          );
+        })
+        .on("click", function (e) {
+          e.preventDefault();
+        });
+
+      let viewChoiceImg = d3
+        .select("#tutorialViewChoiceImg")
+        .on("mouseover", function () {
+          d3.select("#tutorialViewChoiceImg").attr(
+            "src",
+            "./res/viewChoice.gif"
+          );
+        })
+        .on("mouseout", function () {
+          d3.select("#tutorialViewChoiceImg").attr(
+            "src",
+            "./res/viewChoice.png"
+          );
+        })
+        .on("click", function () {
+          return;
+        });
+
+      let aboutBox = d3
+        .select("#aboutDiv")
+        .style("cursor", "pointer")
+        .on("click", function () {
+          if (aboutBox.attr("active") == "false") {
+            aboutBox
+              .style("height", "300px")
+              .style("width", "300px")
+              .attr("active", "true");
+            aboutBox.select("#aboutText").style("visibility", "hidden");
+            aboutBox.select("#makersText").style("visibility", "visible");
+            aboutBox.select("#sourceText").style("visibility", "visible");
+          } else {
+            aboutBox
+              .style("height", "20px")
+              .style("width", "80px")
+              .attr("active", "false");
+            aboutBox.select("#aboutText").style("visibility", "visible");
+            aboutBox.select("#makersText").style("visibility", "hidden");
+            aboutBox.select("#sourceText").style("visibility", "hidden");
+          }
+        }); // About box initialiseres
+
+      let exploreSite = d3.select("#exploreSite").on("click", function () {
+        d3.selectAll("#selectorContainer").style("visibility", "visible");
+        d3.selectAll("#searchDiv").style("visibility", "visible");
+        d3.selectAll("#aboutDiv").style("visibility", "visible");
+        closeStartBox(); // LUKKER STARTBOX
+      });
+
+      d3.select("#searchBar").on("keypress", function (event, d) {
+        if (event.key == "Enter") {
+          onSearch(d);
+        }
+        return;
+      }); // Searchbar
+
+      // Funktion der sætter data ind i tooltippet
+      function returnTooltipText(country) {
+        // tooltip.selectAll("p").remove(); // Fjerner alt indhold i tooltippet
+        // tooltip.append("p").html("ID: " + country.countryid); // Tilføjer ID
+        // tooltip.append("p").html(country.countryname); // Tilføjer landets navn
+        // tooltip
+        //   .append("p")
+        //   .html(
+        //     "Største naturbrand i km<sup>2</sup>: " + country.fire.toFixed(2)
+        //   ); // Tilføjer største naturbrand
+        // tooltip.append("p").html("Årstal: " + country.fireyear); // Tilføjer årstal
+      }
+      // Funktion der også sætter data ind i tooltippet #2 Tooltip
+      function returnTooltipTextCountry(country) {
+        tooltip.selectAll("p").remove(); // Fjerner alt indhold i tooltippet
+        tooltip.append("p").html(country.countryname); // Tilføjer landets navn
+      }
+      function returnToolTipContinent(denne) {
+        tooltip.selectAll("p").remove(); // Fjerner alt indhold i tooltippet
+        tooltip
+          .append("p")
+          .html(d3.select(denne).attr("class").replaceAll("_", " ")); // Tilføjer landets navn
+      }
+
+      function drawStartBoxChart() {
+        // Tegn introchart her
+        $(function () {
+          $("#introChartArea").load("califires.html", function () {
+            $(this).html($("#chartcontainerparent").html());
+          });
+        });
+      }
+
+      function drawFirstStaticGraf(selectedValue) {
+        $.getScript("./scripts/countryGraphs.js", function () {
+          if (selectedValue[0] == ".") {
+            firstGrafReturnContinents(selectedValue);
+          } else if (selectedValue[0] == "#") {
+            firstGrafReturnCountry(selectedValue);
+          } else {
+            console.log(
+              "Rut-Roh - drawFirstStaticGraph's værdikald starter ikke med . eller #"
+            );
+          }
+        });
+      }
+      function drawSecondStaticGraf(selectedValue) {
+        $.getScript("./scripts/countryGraphs.js", function () {
+          if (selectedValue[0] == ".") {
+            secondGrafReturnContinents(selectedValue);
+          } else if (selectedValue[0] == "#") {
+            secondGrafReturnCountry(selectedValue);
+          } else {
+            console.log(
+              "Rut-Roh - drawSecondStaticGraph's værdikald starter ikke med . eller #"
+            );
+          }
+        });
+      }
+
+      function closeStartBox() {
+        d3.selectAll("#startBox img").style("visibility", "hidden");
+        d3.select("#disclaimerDiv").style("visibility", "hidden");
+
+        startBox
+          .style("top", "1%")
+          .transition()
+          .duration(400)
+          .style("top", "100%")
+          .transition()
+          .duration(400)
+          .style("visibility", "hidden"); //Animerer vinduet ud af skærmen og gør det usynligt
+        tutorialBox
+          .style("bottom", "0px")
+          .style("width", "20%")
+          .style("height", "0%")
+          .transition()
+          .delay(400)
+          .duration(1000)
+          .style("height", "50%")
+          .style("width", "20%")
+          .attr("active", "true")
+          .style("padding", function (d) {
+            d3.select("#tutorialDiv").style("visibility", "visible");
+            tutorialBox
+              .select("#tutorialUserViewChoiceDiv")
+              .style("visibility", "visible");
+            tutorialBox
+              .select("#tutorialViewChoiceDiv")
+              .style("visibility", "visible");
+            tutorialBox
+              .select(".close")
+              .transition()
+              .delay(1000)
+              .style("visibility", "visible");
+            return "20px";
+          });
+        return false;
+      }
+
+      function closeCountryWindow(dataWindow) {
+        // Lukker datavinduet for landet / kontinentet
+        dataWindow
+          .transition()
+          .duration(400)
+          .style("top", "100%")
+          .transition()
+          .duration(400)
+          .style("visibility", "hidden");
+        return false;
+      }
+
+      function dragSvg(cirkel, d, event) {
+        // event.preventDefault();
+        d3.select(cirkel).attr("cx", event.offsetX).attr("cy", event.offsetY);
+        // console.log(d3.select(cirkel));
+      }
+
+      function onClickCountry(denne, country, d) {
+        if (viewChoice == "CC") {
+          if (
+            document.getElementById(country.iso2code + "CC") ||
+            document.getElementById(
+              d3.select("#" + country.iso2code).attr("class") + "CC"
+            )
+          )
+            return;
+
+          let interMediateDiff =
+            (d3.select("#worldmap").attr("height") / 100) * 69;
+          let mercatorScale = d3
+            .scalePow()
+            .exponent(2)
+            .domain([1, difference(0, interMediateDiff)])
+            .range([1, 11.5])
+            .clamp(true);
+
+          let returnvalue = 50000;
+          let returnDiffValue = 0;
+          let diffValue = difference(
+            (d3.select("#worldmap").attr("height") / 100) * 69,
+            event.offsetY
+          );
+          // console.log("mScale: " + mercatorScale(diffValue)); ---- DEBUGGING
+          returnDiffValue = mercatorScale(diffValue);
+          // (diffValue /
+          //   ((d3.select("#worldmap").attr("height") / 100) * 69)) *
+          //   10.5 +
+          // 1; //
+
+          // console.log(d); -- DEBUGGING
+          d3.select("#worldmap")
+            .append("circle")
+            .attr("cy", d.offsetY - 1)
+            .attr("cx", d.offsetX - 1)
+            .attr("r", function () {
+              if (userChoiceView == "Individual") {
+                if (
+                  Math.abs(country.fire * returnDiffValue) / returnvalue <
+                  0.8
+                ) {
+                  // callErrorSound();
+                  alert("Der er data, det er bare MEGET småt");
+                }
+                return (
+                  Math.abs(country.fire * returnDiffValue) / returnvalue / 1.5
+                );
+              } else {
+                let continentfire = 0;
+                d3.selectAll("." + d3.select(denne).attr("class")).each(
+                  function () {
+                    continentfire += Number(d3.select(this).attr("fire")); // FOR LOOP, DER GÅR IGENNEM HVERT LAND, OG LÆGGER BRÆNDENE TIL FIRE
+                    // console.log("Faya: " + continentfire); -- DEBUGGING
+                  }
+                );
+                if (
+                  Math.abs(continentfire * returnDiffValue) / returnvalue <
+                  0.8
+                ) {
+                  // callErrorSound();
+                  alert("Der er data, det er bare MEGET småt");
+                }
+                return Math.abs(continentfire * returnDiffValue) / returnvalue;
+              }
+            })
+            .attr("class", "CC")
+            .attr("id", function () {
+              if (userChoiceView == "Individual") {
+                return country.iso2code + "CC";
+              } else {
+                return d3.select("#" + country.iso2code).attr("class") + "CC";
+              }
+            })
+            .on("mousedown", function () {
+              isDown = true;
+            })
+            .on("contextmenu", function (event, dd) {
+              event.preventDefault();
+              // console.log("REMOVING: " + country.countryname);
+              d3.select(this).remove();
+            })
+            .on("mousemove", function (event, dd) {
+              if (isDown) {
+                dragSvg(this, d, event);
+                let diffValue = difference(
+                  (d3.select("#worldmap").attr("height") / 100) * 69,
+                  event.offsetY
+                );
+                returnDiffValue = mercatorScale(diffValue);
+                // console.log("mScale: " + mercatorScale(diffValue));
+                // console.log("returnDiffValue: " + returnDiffValue);
+                // console.log(
+                //   "ReturnDiffValue: " + returnDiffValue / returnvalue --- DEBUGGING
+                // );
+                d3.select(this).attr("r", function () {
+                  if (userChoiceView == "Individual") {
+                    // console.log(country.fire * returnDiffValue); -- DEBUGGING
+                    return (
+                      Math.abs(country.fire * returnDiffValue) / returnvalue
+                    );
+                  } else {
+                    let continentfire = 0;
+                    d3.selectAll("." + d3.select(denne).attr("class")).each(
+                      function () {
+                        continentfire += Number(d3.select(this).attr("fire")); // FOR LOOP, DER GÅR IGENNEM HVERT LAND, OG LÆGGER BRÆNDENE TIL FIRE
+                      }
+                    );
+                    return (
+                      Math.abs(continentfire * returnDiffValue) / returnvalue
+                    );
+                  }
+                });
+              }
+            })
+
+            .on("mouseup", function () {
+              isDown = false;
+            })
+            .style("fill", colorCircle)
+            .append("title")
+            .text(function () {
+              if (userChoiceView == "Individual") return country.countryname;
+              return d3.select(denne).attr("class");
+            });
+        } else {
+          tutorialBox
+            .style("height", "40px")
+            .style("width", "120px")
+            .attr("active", "false")
+            .style("padding", "5px");
+          tutorialBox
+            .select("#tutorialUserViewChoiceDiv")
+            .style("visibility", "hidden");
+          tutorialBox
+            .select("#tutorialViewChoiceDiv")
+            .style("visibility", "hidden");
+          tutorialBox.select(".close").style("visibility", "hidden");
+          let continentfire = 0;
+          dataWindow
+            .style("visibility", "visible")
+            .attr("width", 0)
+            .attr("height", 0)
+            .attr("bottom", "0vh")
+            .transition()
+            .duration(1000)
+            .style("top", "10%");
+
+          dataWindow.selectAll("p, svg").remove(); // Fjerner alt tidligere indhold i dataWindow
+          if (userChoiceView == "Continent") {
+            // Tæller naturbrande for kontinenter
+            // d3.selectAll("." + d3.select(denne).attr("class")).each(
+            //   function () {
+            //     continentfire += Number(d3.select(this).attr("fire")); // FOR LOOP, DER GÅR IGENNEM HVERT LAND, OG LÆGGER BRÆNDENE TIL FIRE
+            //   }
+            // );
+            dataWindow
+              .select("#dataWindowText")
+              .append("p")
+              .html(d3.select(denne).attr("class").replaceAll("_", " "));
+            // dataWindow
+            //   .select("#dataWindowText")
+            //   .append("p")
+            //   .html(
+            //     "Samlet kontinent naturbrande i km<sup>2</sup>: " +
+            //       continentfire.toFixed(2)
+            //   );
+            drawFirstStaticGraf("." + d3.select(denne).attr("class")); // HVIS CONTINENTS ER VALGT, SENDER DEN KONTINENTDATA TILBAGE
+            drawSecondStaticGraf("." + d3.select(denne).attr("class")); // HVIS CONTINENTS ER VALGT, SENDER DEN KONTINENTDATA TILBAGE
+          } else {
+            // Samt tæller naturbrande for lande
+            dataWindow
+              .select("#dataWindowText")
+              .append("p")
+              .html(country.countryname); // Tilføjer landets navn
+            // dataWindow
+            //   .select("#dataWindowText")
+            //   .append("p")
+            //   .html(function () {
+            //     if (country.fire == 0) {
+            //       return (
+            //         "Ingen naturbrande i- / ingen data på " +
+            //         country.countryname
+            //       );
+            //     } else {
+            //       return (
+            //         "Største naturbrand i km<sup>2</sup>: " +
+            //         country.fire.toFixed(2)
+            //       );
+            //     }
+            //   }); // Tilføjer største naturbrand tofixed(2) gør at der kun er 2 decimaler
+            // dataWindow
+            //   .select("#dataWindowText")
+            //   .append("p")
+            //   .html(function () {
+            //     if (country.fire != 0) return "År: " + country.year;
+            //     return " ";
+            //   }); // Tilføjer årstal
+            drawFirstStaticGraf("#" + country.iso2code); // HVIS LANDE ER VALG, SENDER DEN LANDDATA TILBAGE
+            drawSecondStaticGraf("#" + country.iso2code); // HVIS LANDE ER VALGT, SENDER DEN LANDDATA TILBAGE
+          }
+          dataWindow
+            .select("#dataWindowGraf2TextQuestion")
+            .attr(
+              "title",
+              "Forskellige faktorer spiller ind, hvad der angår hvilken type brand der bliver vist af dataen. Her er menneskeskabte naturbrande samt deforestation, til gavn for palme- og soya plantager, også en faktor, som sjældent bliver kommunikeret af medierne. "
+            );
+          dataWindow
+            .append("p")
+            .text("x")
+            .attr("class", "close")
+            .on("click", function () {
+              closeCountryWindow(dataWindow);
+              d3.selectAll("#worldmap *").style("fill", "#D0D0D0"); // Resetter alle landefarver til grå
+            }); // Skjuler dataWindow ved at klikke på x
+          //dataWindow.append("p").html("ID: " + country.countryid); // Tilføjer ID ------ DEBUGGING
+          d3.select(denne).style("fill", "#f75354"); // Ændrer farve på landet
+          //console.log(country.countryname + " CLICKED"); // -------------------DEBUGGING
+          //  console.log(country.countryname + " IIIN"); -------------- DEBUGGING
+          //returnTooltipText(country); // Tooltip -- DEBUGGING
+        }
+        let worldmapheight = d3.select("#worldmap").attr("height");
+        let worldmapwidth = d3.select("#worldmap").attr("width");
+        // console.log(worldmapheight);
+        d3.select("#worldmap")
+          .append("svg")
+          .append("rect")
+          .attr("y", (d3.select("#worldmap").attr("height") / 100) * 69) // (worldmapheight / 100) * 69
+          .attr("x", 0)
+          .attr("width", worldmapwidth)
+          .attr("height", 1)
+          .style("fill", "red")
+          .style("visibility", "hidden")
+          .style("pointer-events", "none")
+          .style("z-index", 900); /// EKVATOR KALD HER SØG EKV
+      }
+
+      // FUNCTIONS THAT DEFINE HOVER BEHAVIOUR
+      function mouseOverFunction(denne, country, d) {
+        if (userChoiceView == "Individual") {
+          // Hvis individuelle lande er valgt, ændrer vi kun farven på det land der er over
+          d3.select(denne).style("fill", "#f75354"); // FARVEÆNDRING
+          returnTooltipTextCountry(country); // Tooltip
+          return tooltip.style("visibility", "visible"); // Skift tooltip synlighed til synlig
+        } else if (userChoiceView == "Continent") {
+          // Hvis kontinenter er valgt, ændrer vi farven på alle lande i det kontinent
+          d3.selectAll("." + d3.select(denne).attr("class")).style(
+            "fill",
+            "#f75354"
+          ); // Finder alle lande med samme klasse (continent) og ændrer farven
+          returnToolTipContinent(denne); // Tooltip
+          return tooltip.style("visibility", "visible"); // Skift tooltip synlighed til synlig
+        }
+      }
+
+      function mouseMoveFunction(denne, country, d) {
+        return tooltip
+          .style("top", d.pageY - 10 + "px")
+          .style("left", d.pageX + 10 + "px"); // Tooltip placering
+      }
+
+      function mouseOutFunction(denne, country, d) {
+        if (userChoiceView == "Individual") {
+          // Hvis individuelle lande er valgt, ændrer vi kun farven tilbage på det land der er over
+          d3.select(denne).style("fill", "#D0D0D0"); // FARVEÆNDRING
+          // console.log(country.countryname + " UUUT"); -------------------DEBUGGING
+          return tooltip.style("visibility", "hidden"); // Skift tooltip synlighed til usynlig
+        } else if (userChoiceView == "Continent") {
+          // Hvis kontinenter er valgt, ændrer vi farven på alle lande i det kontinent tilbage
+          d3.selectAll("." + d3.select(denne).attr("class")).style(
+            "fill",
+            "#d0d0d0"
+          ); // FARVEÆNDRING
+          return tooltip.style("visibility", "hidden"); // Skift tooltip synlighed til usynlig
+        }
+      }
+
+      function callErrorSound() {
+        let audioData = "./res/error.wav";
+        var errorSound = new Audio(audioData);
+        errorSound.play();
+      }
+
+      function onSearch(d) {
+        let errorMessage = d3.select("#errorMessage"); // Henter elementet med id'et errorMessage
+        let searchValue = d3.select("#searchBar").property("value");
+        if (!allCountryNames.includes(searchValue)) {
+          errorMessage.style("visibility", "visible");
+          errorMessage
+            .transition()
+            .delay(3000)
+            .duration(100)
+            .style("visibility", "hidden");
+          callErrorSound();
+          return;
+        } // Hvis søgefeltet ikke indeholder et land, vises en fejlbesked
+        onClickCountry(
+          "#" + allCountryiso2code[allCountryNames.indexOf(searchValue)],
+          allCountryData[allCountryNames.indexOf(searchValue)]
+        ); // Kalder funktion der håndterer klik på land
+
+        // console.log(allCountryNames);
+        // console.log(allCountryiso2code); ------- DEBUGGING
+        // console.log(allCountryData);
+      }
+
+      // Funktionen der initialiserer hover funktionerne
+      function worldHover(country) {
+        // TRY CLAUSE, til at undgå fejl ved manglende data
+        try {
+          thisd3 = d3.select(`#${country.iso2code}`);
+          thisd3.attr("fire", country.fire); // Tilføjer attribut til landet til (Anvender det som en variabel vi kan kalde senere)
+          thisd3.attr("cursor", "pointer"); //Sætter cursor til klikfinger
+
+          // mouseover funktion til visning af tooltip, samt farveændring
+          thisd3.on("mouseover", function (d) {
+            mouseOverFunction(this, country, d); // Kalder funktion der viser tooltip
+          });
+          thisd3.on("mousemove", function (d) {
+            mouseMoveFunction(this, country, d); // Kalder funktion der opdaterer tooltip placering
+          });
+          thisd3.on("mouseout", function (d) {
+            mouseOutFunction(this, country, d); // Kalder funktion der skjuler tooltip
+          });
+          thisd3.on("click", function (d) {
+            onClickCountry(this, country, d);
+            //return tooltip.style("visibility", "visible"); // Skift tooltip synlighed til synlig --DEBUGGING
+          });
+        } catch (e) {
+          // OUTPUT I CONSOL ERROR LOG VED HOVER, HVIS FEJL
+          console.log(e);
+        }
+      }
+
+      // Denne query kører op imod API'en som findes i 'main.js'.
+      // Denne HTML skal derfor åbnes igennem serveren for at virke.
+      function callCountries() {
+        d3.json("/api/countries", {
+          method: "POST", // POST metoden bruges til at sende data til serveren
+        }).then(function (response) {
+          const data = response.data; // Hent data ud af response
+          // console.log("data", data); // -------------------DEBUGGING
+
+          const indexValue = 15; // LEGACY DONT REMOVE
+          const w = 500; // Definerer bredden på svg (Ikke verdenskortet) LEGACY DONT REMOVE
+          const h = 1; // Definerer højden på svg (Ikke verdenskortet) LEGACY DONT RENOVE
+
+          // Lav SVG element
+          const svg = d3
+            .select("body")
+            .append("svg")
+            .attr("width", w)
+            .attr("height", h); //LEGACY DONT REMOVE
+
+          // Indsæt tekst fra postgres query som eksempel
+          svg
+            .selectAll("text")
+            .data(data)
+            .enter()
+            .append("text")
+            .attr("x", 20)
+            .attr("y", function (d, i) {
+              return i * indexValue + 20;
+            })
+            .text(function (d, i) {
+              worldHover(d); //Kalder funktion der initialiserer hvert land med værdier samt hover funktioner
+              // let string = "";
+              // if (i == 0) {
+              //   string = "Svar fra databasen: ";
+              // } else {
+              //   string = "";
+              // }
+              // return string + d.countryid + " " + d.countryname; --DEBUGGING
+            });
+
+          let sortedData = data.sort(
+            (a, b) =>
+              d3.ascending(a.countryname, b.countryname) ||
+              d3.ascending(a.countryname, b.countryname)
+          ); // Sorterer data efter navn
+
+          let searchInput = d3
+            .select("#searchBar")
+            .attr("list", "countrylist")
+            .append("datalist")
+            .attr("id", "countrylist")
+            .selectAll("option")
+            .data(sortedData)
+            .enter()
+            .append("option")
+            .text(function (d) {
+              if (!allCountryNames.includes(d.countryname)) {
+                allCountryNames.push(d.countryname);
+                allCountryiso2code.push(d.iso2code);
+                allCountryData.push(d);
+                return d.countryname;
+              } else {
+                return;
+              }
+            }); // Tilføjer alle lande til søgefeltet
+
+          // Lav din egen visualsering med data her!
+        });
+      }
+
+      // Kalder ekstern svg fil med verdenskort og indsætter det i body tagget i HTML filen (index.html)
+      d3.xml("res/world4.svg").then(function (data) {
+        let topPadding = 45; // Top padding til verdenskortet
+        document
+          .getElementById("worldmapDiv")
+          .appendChild(data.documentElement); // Tilføjer verdenskortet til body tagget i HTML filen (index.html)
+
+        // document
+        //   .getElementById("worldmap")
+        //   .setAttribute("viewBox", "0 0 " + 500 + " " + 500); // Sætter størrelsen på verdenskortet --------------------------- ZOOM FUNCTION MAN
+        callCountries(); // Kalder funktionen der henter data fra API'en
+        drawStartBoxChart(); // Kalder funktionen der tegner start intro chart
+        d3.select("#worldmap").on("click", function () {
+          if (
+            d3.select(".dataWindow").style("visibility") != "hidden" &&
+            d3.select(".dataWindow").style("top") == "10%"
+          ) {
+            closeCountryWindow(d3.select(".dataWindow")); // ----------------------------------TODO DEBUGGING
+          }
+        });
+        function mapResize() {
+          d3.selectAll("#worldmap") // Finder verdenskortet
+            .attr("transform", function () {
+              // Sætter transform på verdenskortet
+              if (window.innerHeight < window.innerWidth) {
+                // Hvis vinduet er bredere end højt
+                return (
+                  "scale(" +
+                  (window.innerHeight - topPadding * 2) /
+                    d3.select("#worldmap").attr("height") +
+                  ")"
+                );
+              } else {
+                // Hvis vinduet er højere end bredten
+                return (
+                  "scale(" +
+                  window.innerWidth / d3.select("#worldmap").attr("width") +
+                  ")"
+                );
+              }
+            })
+            .style("top", function () {
+              // Sætter vertikal placering af verdenskortet
+              return (
+                (window.innerHeight -
+                  topPadding -
+                  d3.select("#worldmap").attr("height")) /
+                2
+              );
+            })
+            .style("left", function () {
+              // Sætter horisontal placering af verdenskortet
+              return (
+                (window.innerWidth - d3.select("#worldmap").attr("width")) / 2
+              );
+            });
+        }
+        mapResize();
+        d3.select(window).on("resize", function () {
+          mapResize();
+        });
+      });
+    </script>
+  </body>
+</html>

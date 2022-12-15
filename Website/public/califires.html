@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <script src="scripts/d3.js"></script>
+    <link href="style.css" rel="stylesheet" />
+    <title>Line Chart</title>
+    <style type="text/css"></style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="chartcontainerparent">
+        <div id="chartcontainer"></div>
+      </div>
+    </div>
+    <script>
+      d3.json("/api/califires", {
+        method: "POST", // POST metoden bruges til at sende data til serveren
+      }).then(function (response) {
+        const data = response.data; // Hent data ud af response
+        // console.log("data", data); // -------------------DEBUGGING
+
+        let startWidth = d3
+            .select("#chartcontainer")
+            .select(function () {
+              return this.parentNode;
+            })
+            .node()
+            .getBoundingClientRect().width,
+          startHeight = d3
+            .select("#chartcontainer")
+            .select(function () {
+              return this.parentNode;
+            })
+            .node()
+            .getBoundingClientRect().height;
+        // set the dimensions and margins of the graph
+        var margin = { top: 100, right: 30, bottom: 30, left: 60 },
+          width = startWidth - margin.left - margin.right,
+          height = startHeight - margin.top - margin.bottom;
+
+        // append the svg object to the body of the page
+        var svg = d3
+          .select("#chartcontainer")
+          .append("svg")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+          .attr(
+            "transform",
+            "translate(" + margin.left + "," + margin.top + ")"
+          );
+
+        svg.append("svg").attr("id", "colorExplainer");
+
+        //Read the data
+
+        // When reading the csv, I must format variables:
+
+        // Add X axis --> it is a date format
+        var x = d3
+          .scaleLinear()
+          .domain(
+            d3.extent(data, function (d) {
+              return d.year;
+            })
+          )
+          .range([0, width])
+          .nice(); // NICE TILFØJER LIDT MARGIN PÅ SIDERNE AF GRAFEN
+        svg
+          .append("g")
+          .attr("transform", "translate(0," + height + ")")
+          .call(d3.axisBottom(x).tickFormat(d3.format("d")));
+
+        // Add Y axis
+        var y = d3
+          .scaleLinear()
+          .domain([
+            0,
+            d3.max(data, function (d) {
+              return +Number(d.acresburnt);
+            }),
+          ])
+          .range([height, 0]);
+        svg.append("g").attr("id", "yAxis").call(d3.axisLeft(y).ticks(5));
+
+        // Second Y axis
+        var y1 = d3
+          .scaleLinear()
+          .domain([
+            0,
+            d3.max(data, function (d) {
+              return +Number(d.tempincrease);
+            }),
+          ])
+          .range([height, 0]);
+        svg
+          .append("g")
+          .attr("transform", "translate(" + width + ",0)")
+          .attr("id", "y1Axis")
+          .call(d3.axisRight(y1).ticks(4));
+        // Add the line
+
+        svg
+          .append("path")
+          .datum(data)
+          .attr("id", "path1")
+          .attr("fill", "none")
+          .attr("stroke", "#a0a1a4")
+          .attr("stroke-width", 4)
+          .attr(
+            "d",
+            d3
+              .line()
+              .x(function (d) {
+                return x(d.year);
+              })
+              .y(function (d) {
+                return y1(Number(d.tempincrease));
+              })
+          )
+          .on("mouseover", function (e, d) {
+            d3.select("#path2")
+              .transition()
+              .duration("50")
+              .style("opacity", "0.25");
+          })
+          .on("mouseout", function (e, d) {
+            d3.select("#path2")
+              .transition()
+              .duration("500")
+              .style("opacity", "1");
+          });
+        svg
+          .append("path")
+          .datum(data)
+          .attr("id", "path2")
+          .attr("fill", "none")
+          .attr("stroke", "#df2c14")
+          .attr("stroke-width", 4)
+          .attr(
+            "d",
+            d3
+              .line()
+              .x(function (d) {
+                return x(d.year);
+              })
+              .y(function (d) {
+                return y(Number(d.acresburnt));
+              })
+          )
+          .on("mouseover", function (e, d) {
+            d3.select("#path1")
+              .transition()
+              .duration("50")
+              .style("opacity", "0.25");
+          })
+          .on("mouseout", function (e, d) {
+            d3.select("#path1")
+              .transition()
+              .duration("500")
+              .style("opacity", "1");
+          });
+        // create svg element:
+        var svg = d3.select("#colorExplainer");
+
+        // Add the path using this helper function
+        svg
+          .append("rect")
+          .attr("x", 10)
+          .attr("y", 0)
+          .attr("id", "califiresExplainerBox1box")
+          .attr("stroke", "black")
+          .attr("fill", "#df2c14") // Box 1
+          .on("mouseover", function (e, d) {
+            d3.select("#path1")
+              .transition()
+              .duration("50")
+              .style("opacity", "0.25");
+          })
+          .on("mouseout", function (e, d) {
+            d3.select("#path1")
+              .transition()
+              .duration("500")
+              .style("opacity", "1");
+          });
+        svg
+          .append("text")
+          .attr("x", 35)
+          .attr("y", 15)
+          .attr("id", "califiresExplainerBox1text")
+          .text("Landmasse afbrandt i Californien (km²)")
+          .on("mouseover", function (e, d) {
+            d3.select("#path1")
+              .transition()
+              .duration("50")
+              .style("opacity", "0.25");
+          })
+          .on("mouseout", function (e, d) {
+            d3.select("#path1")
+              .transition()
+              .duration("500")
+              .style("opacity", "1");
+          }); // Box 1 tekst
+
+        svg
+          .append("rect")
+          .attr("x", 10)
+          .attr("y", 40)
+          .attr("stroke", "black")
+          .attr("id", "califiresExplainerBox2box")
+          .attr("fill", "#a0a1a4") // Box 2
+          .on("mouseover", function (e, d) {
+            d3.select("#path2")
+              .transition()
+              .duration("50")
+              .style("opacity", "0.25");
+          })
+          .on("mouseout", function (e, d) {
+            d3.select("#path2")
+              .transition()
+              .duration("500")
+              .style("opacity", "1");
+          });
+        svg
+          .append("text")
+          .attr("x", 35)
+          .attr("y", 55)
+          .attr("id", "califiresExplainerBox2text")
+          .text("Temperaturstigninger") // Box 2 text
+          .on("mouseover", function (e, d) {
+            d3.select("#path2")
+              .transition()
+              .duration("50")
+              .style("opacity", "0.25");
+          })
+          .on("mouseout", function (e, d) {
+            d3.select("#path2")
+              .transition()
+              .duration("500")
+              .style("opacity", "1");
+          });
+      });
+    </script>
+  </body>
+</html>
